@@ -7,7 +7,4 @@ st.set_page_config(
 
 st.title("IND320 Dashboard")
 
-st.write("""
-Work in progress dashboard for the IND320 project.
-Use the sidebar to navigate between pages.
-""")
+st.write("""work in progress, IND320 dashboard""")

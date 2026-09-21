@@ -6,6 +6,7 @@ import pandas as pd
 def load_reservoir_data():
     df = pd.read_csv('data/reservoirs.csv')
 
+    #renaming columns to english, readable names
     df = df.rename(columns={
         "dato_Id": "date",
         "omrType": "area_type",
@@ -20,6 +21,7 @@ def load_reservoir_data():
         "endring_fyllingsgrad": "fill_level_change"
     })
 
+    #Sort data by date, as csv file is unsorted. important for plotting.
     df["date"] = pd.to_datetime(df["date"])
     df = df.sort_values(by="date")
 

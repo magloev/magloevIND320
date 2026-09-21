@@ -3,10 +3,11 @@ import pandas as pd
 from src.data_loader import load_reservoir_data
 
 st.title("Reservoir Data")
-
+#Loading the reservoir data, using data_loader.py file
 df = load_reservoir_data()
 df_no = df[df["area_type"] == "NO"].copy()
 
+#Finds first date to display the first month (first four weeks)
 start_data = df_no[
     (df_no["iso_year"] == df_no["iso_year"].min()) & (df_no["iso_week"].between(1,4))
 ]
@@ -26,6 +27,7 @@ chart_data = pd.DataFrame({
     ]
 })
 
+#Displays the first month using the LineChartColumn. 
 st.dataframe(
     chart_data,
     column_config={
