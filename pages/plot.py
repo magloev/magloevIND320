@@ -17,28 +17,44 @@ columns = [
     "fill_level_change"
 ]
 
-df_no_normalized = df_no.copy()
-#Normalizing columns with min-max scaling, to plot them on the same graph.
-for column in columns:
-    df_no_normalized[column] = (
-        (df_no[column] - df_no[column].min())
-        / (df_no[column].max() - df_no[column].min())
-    )
+plot_selection = st.selectbox(
+    "Select data to display",
+    [
+        "Fill level",
+        "Stored energy",
+        "Fill level of previous week",
+        "Change in fill level",
+        "All columns",
+    ]
+)
 
-fig, ax = plt.subplots(figsize=(12, 6))
+fig, ax1 = plt.subplots(figsize=(14, 6))
 
-for column in columns:
-    ax.plot(
-        df_no_normalized["date"],
-        df_no_normalized[column],
-        label=column
-    )
+# Fill level - left y-axis
+ax1.plot(
+    df_no["date"],
+    df_no["fill_level"],
+    label="Fill Level",
+    color="blue"
+)
 
-ax.set_title("Norwegian reservoir data over time")
-ax.set_xlabel("Date")
-ax.set_ylabel("Normalized value")
-ax.legend()
-ax.grid()
+ax1.set_xlabel("Date")
+ax1.set_ylabel("Fill Level", color="blue")
+ax1.grid()
+
+# Fill level change - right y-axis
+ax2 = ax1.twinx()
+
+ax2.plot(
+    df_no["date"],
+    df_no["fill_level_change"],
+    label="Fill Level Change",
+    color="red"
+)
+
+ax2.set_ylabel("Fill Level Change", color="red")
+
+plt.title("Norwegian Reservoir Fill Level and Weekly Change")
+
 fig.tight_layout()
-
 st.pyplot(fig)
