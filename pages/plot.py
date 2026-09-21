@@ -29,21 +29,14 @@ plot_selection = st.selectbox(
     ]
 )
 
-#Finds the first and last date of the dataset to use for the date range slider
-min_date = df_no["date"].min().date()
-max_date = df_no["date"].max().date()
+date_options = df_no["date"].dt.date.tolist()
 
-#The "default" showing the first month of data
-default_end = (pd.Timestamp(min_date) + pd.DateOffset(months=1)).date()
-
-
-date_range = st.slider(
+date_range = st.select_slider(
     "Select date range",
-    min_value=min_date,
-    max_value=max_date,
-    value=(min_date, default_end),
-    format="DD/MM/YYYY"
+    options=date_options,
+    value=(date_options[0], date_options[4])
 )
+
 start_date = pd.Timestamp(date_range[0])
 end_date = pd.Timestamp(date_range[1])
 
@@ -97,7 +90,7 @@ if selected_column == "all_columns":
     ax2.tick_params(axis="x", labelrotation=45)
 
 
-    plt.title("Norwegian Reservoir Fill Level and Weekly Change")
+    plt.title("Reservoir Fill Level and Weekly Change")
 
     fig.tight_layout()
     plt.show()
