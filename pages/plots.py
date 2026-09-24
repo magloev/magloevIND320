@@ -21,10 +21,10 @@ columns = [
 plot_selection = st.selectbox(
     "Select data to display",
     [
-        "Fill level",
-        "Stored energy",
-        "Fill level of previous week",
-        "Change in fill level",
+        "Fill level (%)",
+        "Stored energy (TWh)",
+        "Fill level in previous week (%)",
+        "Change in fill level (%)",
         "All columns",
     ]
 )
@@ -46,16 +46,16 @@ df_filtered = df_no[
     (df_no["date"] <= end_date)
 ]
 
-if plot_selection == "Fill level":
+if plot_selection == "Fill level (%)":
     selected_column = "fill_level"
 
-elif plot_selection == "Stored energy":
+elif plot_selection == "Stored energy (TWh)":
     selected_column = "stored_energy_TWh"
 
-elif plot_selection == "Fill level of previous week":
+elif plot_selection == "Fill level in previous week (%)":
     selected_column = "fill_level_prev_week"
 
-elif plot_selection == "Change in fill level":
+elif plot_selection == "Change in fill level (%)":
     selected_column = "fill_level_change"
 
 elif plot_selection == "All columns":

@@ -14,10 +14,10 @@ start_data = df_no[
 
 chart_data = pd.DataFrame({
     "variable": [
-        "Fill level",
+        "Fill level (%)",
         "Stored energy (TWh)",
-        "Fill level in previous week",
-        "Change in fill level"
+        "Fill level in previous week (%)",
+        "Change in fill level (%)"
         ],
     "values": [
         start_data["fill_level"].tolist(),

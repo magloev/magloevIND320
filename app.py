@@ -7,4 +7,17 @@ st.set_page_config(
 
 st.title("IND320 Dashboard")
 
-st.write("""work in progress, IND320 dashboard""")
+
+def home():
+    st.write("Dashboard IND320 WIP")
+
+
+pages = [
+    st.Page(home, title="Home"),
+    st.Page("pages/reservoirdata.py", title="Reservoir Data"),
+    st.Page("pages/plots.py", title="Plots"),
+    st.Page("pages/dummy.py", title="Dummy Page")
+]
+
+pg = st.navigation(pages)
+pg.run()
