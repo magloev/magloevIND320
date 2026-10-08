@@ -1,10 +1,17 @@
 import streamlit as st
 import pandas as pd
+import requests
 
 
 @st.cache_data
 def load_reservoir_data():
-    df = pd.read_csv('data/reservoirs.csv')
+    url = "https://biapi.nve.no/magasinstatistikk/api/Magasinstatistikk/HentOffentligData"
+
+    response = requests.get(url, timeout=60)
+    response.raise_for_status()
+
+    df = pd.DataFrame(response.json())
+
 
     #renaming columns to english, readable names
     df = df.rename(columns={
