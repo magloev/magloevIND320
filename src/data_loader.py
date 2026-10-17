@@ -6,7 +6,6 @@ import requests
 @st.cache_data
 def load_reservoir_data():
     url = "https://biapi.nve.no/magasinstatistikk/api/Magasinstatistikk/HentOffentligData"
-
     response = requests.get(url, timeout=60)
     response.raise_for_status()
 

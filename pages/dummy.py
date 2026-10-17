@@ -1,4 +1,8 @@
 import streamlit as st
+from src.mongo_loader import load_mongo_data
 
-st.title("Dummy Page")
-st.write("Very dumb page")
+st.title("Electricity Exchange")
+
+df = load_mongo_data()
+
+st.dataframe(df.head())
