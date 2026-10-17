@@ -16,7 +16,7 @@ pages = [
     st.Page(home, title="Home"),
     st.Page("pages/reservoirdata.py", title="Reservoir Data"),
     st.Page("pages/plots.py", title="Plots"),
-    st.Page("pages/dummy.py", title="Dummy Page")
+    st.Page("pages/transferdata.py", title="Transfer Data")
 ]
 
 pg = st.navigation(pages)
