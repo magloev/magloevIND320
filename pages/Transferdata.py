@@ -5,7 +5,7 @@ import calendar
 from src.mongo_loader import load_mongo_data
 from src.zones import zones, connections
 
-st.title("Electricity Exchange")
+st.title("Electricity Transfers")
 
 df = load_mongo_data()
 df["timestamp"] = pd.to_datetime(df["timestamp"])
