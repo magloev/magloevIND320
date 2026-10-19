@@ -138,6 +138,6 @@ with st.expander("Data Source"):
         "Electricity exchange data retrieved from the "
         "ENTSO-E Transparency Platform API. "
         "The data was processed using Apache Spark, "
-        "stored in Cassandra and MongoDB, "
+        "stored in Cassandra and MongoDB,"
         "and retrieved from MongoDB Atlas for visualization."
     )
