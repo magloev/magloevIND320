@@ -182,3 +182,7 @@ cython_debug/
 
 #Secrets
 .streamlit/secrets.toml
+
+# Open-Meteo API cache
+.cache.sqlite
+.cache.sqlite-*
