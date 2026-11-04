@@ -186,3 +186,7 @@ cython_debug/
 # Open-Meteo API cache
 .cache.sqlite
 .cache.sqlite-*
+
+# Weather datasets
+data/weather/*.csv
+data/weather/**/*.csv

@@ -1,4 +1,7 @@
 import streamlit as st
+import pandas as pd
+from src.data_loader import load_reservoir_data
+from src.global_selector import global_selectors
 
 st.set_page_config(
     page_title="IND320 Dashboard",
@@ -6,6 +9,7 @@ st.set_page_config(
 )
 
 st.title("IND320 Dashboard")
+
 
 
 def home():
@@ -20,13 +24,14 @@ def home():
     from ENTSO-E API.
     """)
 
-
 pages = [
     st.Page(home, title="Home"),
-    st.Page("pages/reservoirdata.py", title="Reservoir Data"),
     st.Page("pages/plots.py", title="Plots"),
-    st.Page("pages/transferdata.py", title="Transfer Data")
-]
+    st.Page("pages/transferdata.py", title="Transfer Data"),
+    st.Page("pages/anomaly_detection.py", title="Anomaly Detection"),
+    st.Page("pages/time_series.py", title="Time Series Analysis")]
 
 pg = st.navigation(pages)
+if pg.title != "Transfer Data":
+    global_selectors()
 pg.run()
