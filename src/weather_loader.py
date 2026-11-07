@@ -1,6 +1,14 @@
 import json
 from pathlib import Path
 import pandas as pd
+import openmeteo_requests
+import requests_cache
+from retry_requests import retry
+
+# Initialize Open-Meteo API client
+cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
+retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
+openmeteo = openmeteo_requests.Client(session=retry_session)
 
 with open("data/weather/zone_coordinates.json", "r") as f:
     zone_coordinates = json.load(f)
