@@ -187,6 +187,9 @@ cython_debug/
 .cache.sqlite
 .cache.sqlite-*
 
-# Weather datasets
-data/weather/*.csv
-data/weather/**/*.csv
+# Ignore large raw weather data folders
+data/weather/NO1_*/
+data/weather/NO2_*/
+data/weather/NO3_*/
+data/weather/NO4_*/
+data/weather/NO5_*/

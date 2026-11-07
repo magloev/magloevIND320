@@ -108,7 +108,7 @@ def download_weather(region, start_date, end_date):
     # Combine all batches into one DataFrame
     return pd.concat(weather_data, ignore_index=True)
 
-def aggregate_weather(region, start_date, end_date):
+def aggregate_weather(region, start_date, end_date, allow_download=False):
     """
     Load existing hourly regional averages if available.
     Otherwise download, aggregate and save weather data.
@@ -124,6 +124,12 @@ def aggregate_weather(region, start_date, end_date):
     if filepath.exists():
         print("Loading existing aggregated weather data")
         return pd.read_csv(filepath, parse_dates=["date"])
+
+    if not allow_download:
+        raise FileNotFoundError(
+            f"Aggregated weather data not found: {filepath}. "
+            "Automatic downloading is disabled."
+        )
 
     # Download weather data if aggregated CSV is missing
     df = download_weather(region, start_date, end_date)
