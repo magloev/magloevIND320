@@ -15,14 +15,36 @@ st.title("IND320 Dashboard")
 def home():
     st.subheader("About the project")
     st.markdown("""
-    This dashboard is used to provide insights into energy data from the Norwegian and European
-    electricity systems. 
-    The application includes following components:
-    - **Reservoir data** Containing first month data from the different areas.
-    - **Plots** Contains plots of various parameters from the NVE Magasinstatistikk API.
-    - **Transfer data** Pie-chart and line-plot of Exchanges between Norwegian and foreign countries retrieved
-    from ENTSO-E API.
-    """)
+        ### Norwegian Energy Data Analysis
+
+        This project explores Norwegian energy data through interactive
+        visualizations, data processing, and statistical analysis.
+
+        The project consists of three parts:
+
+        **Part 1 – Reservoir Data**  
+        Analysis and visualization of historical Norwegian reservoir
+        filling levels using data from the Norwegian Water Resources
+        and Energy Directorate (NVE).
+
+        **Part 2 – Electricity Transfers**  
+        Analysis of electricity imports and exports between Norwegian
+        and neighboring European bidding zones using ENTSO-E data.
+        The workflow incorporates Apache Spark, Cassandra, and MongoDB.
+
+        **Part 3 – Weather and Time Series Analysis**  
+        Historical ERA5 temperature and precipitation data from
+        Open-Meteo are combined with reservoir data to investigate
+        anomalies, seasonal patterns, and frequency characteristics.
+
+        Statistical methods include:
+        - Discrete Cosine Transform (DCT) and Statistical Process Control (SPC)
+        - Local Outlier Factor (LOF)
+        - Seasonal-Trend decomposition using LOESS (STL)
+        - Short-Time Fourier Transform (STFT)
+
+        Use the navigation menu to explore the datasets and analyses.
+        """)
 
 pages = [
     st.Page(home, title="Home"),
