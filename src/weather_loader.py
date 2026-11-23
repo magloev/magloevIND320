@@ -5,12 +5,18 @@ import openmeteo_requests
 import requests_cache
 from retry_requests import retry
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+WEATHER_DIR = PROJECT_ROOT / "data" / "weather"
+
 # Initialize Open-Meteo API client
-cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
+cache_session = requests_cache.CachedSession(
+    str(PROJECT_ROOT / ".cache"),
+    expire_after=3600
+)
 retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
 openmeteo = openmeteo_requests.Client(session=retry_session)
 
-with open("data/weather/zone_coordinates.json", "r") as f:
+with open(PROJECT_ROOT / "data" / "weather" / "zone_coordinates.json", "r") as f:
     zone_coordinates = json.load(f)
 
 def download_weather(region, start_date, end_date):
@@ -27,7 +33,7 @@ def download_weather(region, start_date, end_date):
     weather_data = []
 
     # Create folder for the selected region and time interval
-    folder = Path("data/weather") / f"{region.replace(' ', '')}_{start_date}_{end_date}"
+    folder = WEATHER_DIR / f"{region.replace(' ', '')}_{start_date}_{end_date}"
     folder.mkdir(parents=True, exist_ok=True)
 
     # Loop through coordinates in batches of 10
@@ -114,7 +120,7 @@ def aggregate_weather(region, start_date, end_date, allow_download=False):
     Otherwise download, aggregate and save weather data.
     """
 
-    output_dir = Path("data/weather")
+    output_dir = WEATHER_DIR
     output_dir.mkdir(parents=True, exist_ok=True)
 
     filename = f"{region}_{start_date}_{end_date}_average.csv"
