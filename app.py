@@ -46,14 +46,56 @@ def home():
         Use the navigation menu to explore the datasets and analyses.
         """)
 
-pages = [
-    st.Page(home, title="Home"),
-    st.Page("pages/plots.py", title="Plots"),
-    st.Page("pages/transferdata.py", title="Transfer Data"),
-    st.Page("pages/anomaly_detection.py", title="Anomaly Detection"),
-    st.Page("pages/time_series.py", title="Time Series Analysis")]
+# Temporary placeholders for new pages
+def sliding_correlation():
+    st.header("Sliding Window Correlation")
 
-pg = st.navigation(pages)
-if pg.title != "Transfer Data":
+
+def reservoir_forecasting():
+    st.header("Reservoir Forecasting")
+
+
+# Navigation structure
+pages = {
+    "": [
+        st.Page(home, title="Home", default=True),
+        st.Page("pages/interactive_map.py", title="Interactive Map")
+    ],
+    "Data Overview": [
+        st.Page("pages/plots.py", title="Reservoir Data"),
+        st.Page("pages/transferdata.py", title="Electricity Transfers"),
+        st.Page("pages/weather_data.py", title="Weather Data")
+    ],
+    "Data Analysis": [
+        st.Page("pages/anomaly_detection.py", title="Anomaly Detection"),
+        st.Page("pages/time_series.py", title="Time Series Analysis"),
+        st.Page(sliding_correlation, title="Sliding Window Correlation")
+    ],
+    "Prediction": [
+        st.Page(reservoir_forecasting, title="Reservoir Forecasting")
+    ]
+}
+
+pg = st.navigation(pages, position="hidden")
+
+with st.sidebar:
+    for group, page_list in pages.items():
+        if group == "":
+            for page in page_list:
+                st.page_link(page)
+        else:
+            with st.expander(group, expanded=False):
+                for page in page_list:
+                    st.page_link(page)
+
+if pg.title in [
+    "Home",
+    "Interactive Map",
+    "Reservoir Data",
+    "Anomaly Detection",
+    "Time Series Analysis",
+    "Weather Data"
+]:
     global_selectors()
+
 pg.run()
