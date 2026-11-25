@@ -1,6 +1,8 @@
 import numpy as np
-import matplotlib.pyplot as plt
+import pandas as pd
+import plotly.graph_objects as go
 
+from plotly.subplots import make_subplots
 from statsmodels.tsa.seasonal import STL
 from scipy.signal import stft
 
@@ -9,7 +11,7 @@ def reservoir_stl(fill_level, seasonal=13, trend=105, robust=True, area="NO"):
     """
     Decompose weekly reservoir filling levels using STL.
 
-    Returns the decomposition plot and the STL result.
+    Returns an interactive Plotly figure and the STL result.
     """
 
     stl = STL(
@@ -22,20 +24,64 @@ def reservoir_stl(fill_level, seasonal=13, trend=105, robust=True, area="NO"):
 
     result = stl.fit()
 
-    fig = result.plot()
-    fig.set_size_inches(13, 8)
-    fig.suptitle(f"STL Decomposition — {area} Reservoir Filling Levels")
+    fig = make_subplots(
+        rows=4,
+        cols=1,
+        shared_xaxes=True,
+        vertical_spacing=0.06,
+        subplot_titles=[
+            "Observed fill level",
+            "Trend",
+            "Seasonal component",
+            "Residual component"
+        ]
+    )
 
-    fig.tight_layout()
+    components = [
+        (fill_level, "Observed", "#38BDF8"),
+        (result.trend, "Trend", "#F59E0B"),
+        (result.seasonal, "Seasonal", "#22C55E"),
+        (result.resid, "Residual", "#F87171")
+    ]
+
+    for row, (values, name, colour) in enumerate(components, start=1):
+
+        fig.add_trace(
+            go.Scatter(
+                x=fill_level.index,
+                y=values,
+                mode="lines",
+                name=name,
+                line=dict(color=colour),
+                hovertemplate="%{y:.2%}<extra></extra>"
+            ),
+            row=row,
+            col=1
+        )
+
+        fig.update_yaxes(
+            tickformat=".0%",
+            row=row,
+            col=1
+        )
+
+    fig.update_layout(
+        title=f"STL Decomposition — {area}",
+        height=850,
+        showlegend=False,
+        hovermode="x unified"
+    )
+
+    fig.update_xaxes(title_text="Date", row=4, col=1)
 
     return fig, result
 
 
 def reservoir_spectrogram(fill_level, nperseg=208, noverlap=104, area="NO"):
     """
-    Create a spectrogram of weekly reservoir filling levels.
+    Create an interactive spectrogram of weekly reservoir filling levels.
 
-    Returns the Matplotlib figure and STFT results.
+    Returns the Plotly figure and STFT results.
     """
 
     y = fill_level.to_numpy()
@@ -49,27 +95,82 @@ def reservoir_spectrogram(fill_level, nperseg=208, noverlap=104, area="NO"):
         noverlap=noverlap
     )
 
-    fig, axs = plt.subplots(2, 1, figsize=(13, 8))
-
-    axs[0].plot(np.arange(len(y)), y)
-    axs[0].set_title(f"{area} Reservoir Filling Levels")
-    axs[0].set_ylabel("Fill level")
-
-    pcm = axs[1].pcolormesh(
-        t,
-        f,
-        np.abs(Zxx),
-        shading="auto"
+    # Convert weeks from start into calendar dates
+    spectrogram_dates = (
+        fill_level.index[0] +
+        pd.to_timedelta(t * 7, unit="D")
     )
 
-    axs[1].set_title("Spectrogram")
-    axs[1].set_xlabel("Time (weeks from start)")
-    axs[1].set_ylabel("Frequency (cycles/week)")
+    fig = make_subplots(
+        rows=2,
+        cols=1,
+        shared_xaxes=True,
+        vertical_spacing=0.10,
+        subplot_titles=[
+            f"{area} Reservoir Filling Levels",
+            "Spectrogram"
+        ],
+        row_heights=[0.4, 0.6]
+    )
 
-    axs[1].set_ylim(0, 0.08)
+    fig.add_trace(
+        go.Scatter(
+            x=fill_level.index,
+            y=y,
+            mode="lines",
+            name="Fill level",
+            line=dict(color="#38BDF8"),
+            hovertemplate="%{y:.2%}<extra></extra>"
+        ),
+        row=1,
+        col=1
+    )
 
-    fig.colorbar(pcm, ax=axs[1], label="Magnitude")
+    fig.add_trace(
+        go.Heatmap(
+            x=spectrogram_dates,
+            y=f,
+            z=np.abs(Zxx),
+            colorscale="Viridis",
+            colorbar=dict(
+                title="Magnitude",
+                len=0.5,
+                y=0.25
+            ),
+            hovertemplate=(
+                "Date: %{x|%Y-%m-%d}<br>"
+                "Frequency: %{y:.4f} cycles/week<br>"
+                "Magnitude: %{z:.4f}"
+                "<extra></extra>"
+            )
+        ),
+        row=2,
+        col=1
+    )
 
-    plt.tight_layout()
+    fig.update_yaxes(
+        title_text="Fill level",
+        tickformat=".0%",
+        row=1,
+        col=1
+    )
+
+    fig.update_yaxes(
+        title_text="Frequency (cycles/week)",
+        range=[0, 0.08],
+        row=2,
+        col=1
+    )
+
+    fig.update_xaxes(
+        title_text="Date",
+        row=2,
+        col=1
+    )
+
+    fig.update_layout(
+        height=700,
+        showlegend=False
+    )
 
     return fig, (f, t, Zxx)

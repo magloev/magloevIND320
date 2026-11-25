@@ -1,6 +1,6 @@
 import numpy as np
 import plotly.graph_objects as go
-
+import plotly.express as px
 from scipy.fft import dct, idct
 from sklearn.neighbors import LocalOutlierFactor
 
@@ -153,3 +153,37 @@ def weather_lof(df, variable="temperature_2m", contamination=0.01):
     }
 
     return fig, summary
+
+def sliding_window_correlation(
+    df,
+    weather_variable,
+    window=12,
+    lag=0
+):
+    x = df[weather_variable].shift(lag)
+    y = df["fill_level_change"]
+
+    swc = y.rolling(window, center=True).corr(x)
+
+    return swc
+
+def plot_swc(swc, weather_variable, window=12, lag=0):
+
+    name, unit = WEATHER_PROPERTIES[weather_variable]
+
+    fig = px.line(
+        x=swc.index,
+        y=swc.values,
+        title=f"SWC – {name} | Window: {window} weeks | Lag: {lag} weeks",
+        labels={
+            "x": "Date",
+            "y": "Correlation"
+        }
+    )
+
+    fig.update_traces(line=dict(color="blue"))
+    fig.add_hline(y=0, line_dash="dash", line_color="gray")
+    fig.update_yaxes(range=[-1, 1])
+    fig.update_layout(height=450)
+
+    return fig

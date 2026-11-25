@@ -1,12 +1,16 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 
 from src.data_loader import load_reservoir_data
-from src.reservoir_analysis import reservoir_stl, reservoir_spectrogram
+from src.reservoir_cache import (
+    cached_reservoir_stl,
+    cached_reservoir_spectrogram
+)
 
-st.title("Reservoir Time Series Analysis")
 
+st.header("Reservoir Time Series Analysis")
+
+# Get global selections
 area_type = st.session_state["area_type"]
 area_id = st.session_state["area_id"]
 date_range = st.session_state["date_range"]
@@ -16,6 +20,7 @@ df["date"] = pd.to_datetime(df["date"])
 
 start_date, end_date = date_range
 
+# Filter reservoir observations
 df_filtered = df[
     (df["area_type"] == area_type) &
     (df["area_id"].astype(str) == str(area_id)) &
@@ -25,19 +30,33 @@ df_filtered = df[
 
 fill_level = df_filtered.set_index("date")["fill_level"].dropna()
 
+area_label = f"{area_type} {area_id}"
+
 st.caption(
-    f"Area: {area_type} {area_id} | "
+    f"Area: {area_label} | "
     f"Period: {start_date} to {end_date}"
 )
 
 st.write(f"Weekly observations: {len(fill_level)}")
 
+if fill_level.empty:
+    st.warning("No reservoir observations available.")
+    st.stop()
+
+# Check that observations are consecutive
+if not fill_level.index.to_series().diff().dropna().eq(
+    pd.Timedelta(weeks=1)
+).all():
+    st.warning(
+        "The selected dataset contains gaps in weekly observations. "
+        "Select a continuous period for time series analysis."
+    )
+    st.stop()
+
 tab1, tab2 = st.tabs([
     "STL Decomposition",
     "Spectrogram"
 ])
-
-area_label = f"{area_type} {area_id}"
 
 with tab1:
     st.subheader("Seasonal-Trend Decomposition using LOESS")
@@ -48,21 +67,25 @@ with tab1:
         "changes and recurring annual patterns."
     )
 
-    seasonal = st.slider(
-        "Seasonal smoothing window (weeks)",
-        min_value=7,
-        max_value=53,
-        value=13,
-        step=2
-    )
+    col1, col2 = st.columns(2)
 
-    trend = st.slider(
-        "Trend smoothing window (weeks)",
-        min_value=55,
-        max_value=209,
-        value=105,
-        step=2
-    )
+    with col1:
+        seasonal = st.slider(
+            "Seasonal smoothing window (weeks)",
+            min_value=7,
+            max_value=53,
+            value=13,
+            step=2
+        )
+
+    with col2:
+        trend = st.slider(
+            "Trend smoothing window (weeks)",
+            min_value=55,
+            max_value=209,
+            value=105,
+            step=2
+        )
 
     robust = st.checkbox(
         "Robust decomposition",
@@ -74,34 +97,38 @@ with tab1:
             "Select at least two years of weekly data for a meaningful "
             "annual STL decomposition."
         )
-    else:
-        fig_stl, result_stl = reservoir_stl(
-            fill_level,
-            seasonal=seasonal,
-            trend=trend,
-            robust=robust,
-            area=area_label
-        )
 
-        st.pyplot(fig_stl)
-        plt.close(fig_stl)
+    else:
+
+        with st.spinner("Calculating STL decomposition..."):
+
+            fig_stl, result_stl = cached_reservoir_stl(
+                fill_level,
+                seasonal=seasonal,
+                trend=trend,
+                robust=robust,
+                area=area_label
+            )
+
+        st.plotly_chart(fig_stl, use_container_width=True)
 
         col1, col2, col3 = st.columns(3)
 
         col1.metric(
             "Mean trend",
-            f"{result_stl.trend.mean():.3f}"
+            f"{result_stl.trend.mean():.1%}"
         )
 
         col2.metric(
             "Seasonal variation (std.)",
-            f"{result_stl.seasonal.std():.3f}"
+            f"{result_stl.seasonal.std() * 100:.2f} pp"
         )
 
         col3.metric(
             "Residual variation (std.)",
-            f"{result_stl.resid.std():.3f}"
+            f"{result_stl.resid.std() * 100:.2f} pp"
         )
+
 
 with tab2:
     st.subheader("Reservoir Spectrogram")
@@ -112,32 +139,40 @@ with tab2:
         "levels changes over time."
     )
 
-    nperseg = st.slider(
-        "Window length (weeks)",
-        min_value=52,
-        max_value=208,
-        value=104,
-        step=52,
-    )
+    col1, col2 = st.columns(2)
 
-    noverlap = st.slider(
-        "Window overlap (weeks)",
-        min_value=0,
-        max_value=nperseg - 1,
-        value=nperseg // 2
-    )
+    with col1:
+        nperseg = st.slider(
+            "Window length (weeks)",
+            min_value=52,
+            max_value=208,
+            value=104,
+            step=52
+        )
+
+    with col2:
+        noverlap = st.slider(
+            "Window overlap (weeks)",
+            min_value=0,
+            max_value=nperseg - 1,
+            value=nperseg // 2
+        )
 
     if len(fill_level) < nperseg:
         st.warning(
             f"Select at least {nperseg} weekly observations "
             "or reduce the window length."
         )
-    else:
-        fig_spec, result_spec = reservoir_spectrogram(
-            fill_level,
-            nperseg=nperseg,
-            noverlap=noverlap
-        )
 
-        st.pyplot(fig_spec)
-        plt.close(fig_spec)
+    else:
+
+        with st.spinner("Calculating spectrogram..."):
+
+            fig_spec, result_spec = cached_reservoir_spectrogram(
+                fill_level,
+                nperseg=nperseg,
+                noverlap=noverlap,
+                area=area_label
+            )
+
+        st.plotly_chart(fig_spec, use_container_width=True)

@@ -62,11 +62,18 @@ def global_selectors():
     # Initialise or validate date range
     date_range = st.session_state.get("date_range")
 
+    default_start = next(
+        (date for date in date_options
+         if pd.Timestamp(date) >= pd.Timestamp("2024-01-01")),
+        date_options[0]
+    )
+
+
     if date_range is None or not all(
         date in date_options for date in date_range
     ):
         st.session_state["date_range"] = (
-            date_options[0], date_options[-1]
+            default_start, date_options[-1]
         )
 
     load_value("date_range")

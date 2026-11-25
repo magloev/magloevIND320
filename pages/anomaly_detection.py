@@ -5,29 +5,49 @@ from src.weather_analysis import weather_spc, weather_lof
 
 st.title("Weather Anomaly Detection")
 
-area_type = st.session_state["area_type"]
-area_id = st.session_state["area_id"]
+# Select default dataset or global settings
+use_global = st.checkbox(
+    "Use global area and date selections",
+    value=False
+)
 
-if area_type != "EL":
-    st.info("Weather analysis is currently only available for EL areas.")
-    st.stop()
+if use_global:
 
-region = f"NO {area_id}"
+    area_type = st.session_state["area_type"]
+    area_id = st.session_state["area_id"]
 
-start_date, end_date = st.session_state["date_range"]
+    if area_type != "EL":
+        st.info("Weather analysis is currently only available for EL areas.")
+        st.stop()
 
-start_date = pd.Timestamp(start_date).strftime("%Y-%m-%d")
-end_date = pd.Timestamp(end_date).strftime("%Y-%m-%d")
+    region = f"NO {area_id}"
 
-st.caption(f"Region: {region} | Period: {start_date} to {end_date}")
+    start_date, end_date = st.session_state["date_range"]
+
+    start_date = pd.Timestamp(start_date).strftime("%Y-%m-%d")
+    end_date = pd.Timestamp(end_date).strftime("%Y-%m-%d")
+
+else:
+
+    region = "NO 3"
+    start_date = "2024-01-01"
+    end_date = "2024-12-31"
 
 resolution = st.radio(
     "Temporal resolution",
-    ["daily", "hourly"],
-    horizontal=True
+    ["hourly", "daily"],
+    index=1 if use_global else 0,
+    horizontal=True,
+    key=f"anomaly_resolution_{use_global}"
 )
 
 n_locations = 100 if resolution == "daily" else 1000
+
+st.caption(
+    f"Region: {region} | "
+    f"Period: {start_date} to {end_date} | "
+    f"Sampling locations: {n_locations}"
+)
 
 df_weather, missing_dates = check_weather_availability(
     region,

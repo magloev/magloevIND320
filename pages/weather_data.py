@@ -1,12 +1,9 @@
 import streamlit as st
 import pandas as pd
 from src.weather_cache import check_weather_availability
+from src.weather_loader import aggregate_weather
 
-from src.weather_loader import (
-    check_weather_availability,
-    aggregate_weather,
-    zone_coordinates
-)
+
 
 st.header("Weather Data")
 

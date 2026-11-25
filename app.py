@@ -69,10 +69,10 @@ pages = {
     "Data Analysis": [
         st.Page("pages/anomaly_detection.py", title="Anomaly Detection"),
         st.Page("pages/time_series.py", title="Time Series Analysis"),
-        st.Page(sliding_correlation, title="Sliding Window Correlation")
+        st.Page("pages/sliding_correlation.py", title="Sliding Window Correlation")
     ],
     "Prediction": [
-        st.Page(reservoir_forecasting, title="Reservoir Forecasting")
+        st.Page("pages/reservoir_forecasting.py", title="Reservoir Forecasting")
     ]
 }
 
@@ -94,7 +94,9 @@ if pg.title in [
     "Reservoir Data",
     "Anomaly Detection",
     "Time Series Analysis",
-    "Weather Data"
+    "Weather Data",
+    "Sliding Window Correlation",
+    "Reservoir Forecasting"
 ]:
     global_selectors()
 
