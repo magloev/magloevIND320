@@ -10,41 +10,69 @@ st.set_page_config(
 
 st.title("IND320 Dashboard")
 
-
-
 def home():
-    st.subheader("About the project")
+
+    st.header("IND320 – Data to Decision")
+
     st.markdown("""
-        ### Norwegian Energy Data Analysis
+    The project combines Norwegian reservoir data, electricity transfers
+    and meteorological observations to explore relationships between
+    weather, energy and reservoir filling levels.
+    """)
 
-        This project explores Norwegian energy data through interactive
-        visualizations, data processing, and statistical analysis.
+    st.subheader("Explore the application")
 
-        The project consists of three parts:
+    st.markdown("""
+    **Interactive Map**
 
-        **Part 1 – Reservoir Data**  
-        Analysis and visualization of historical Norwegian reservoir
-        filling levels using data from the Norwegian Water Resources
-        and Energy Directorate (NVE).
+    Explore Norwegian reservoir areas geographically and visualise average
+    temperature and accumulated precipitation over a selected period.
 
-        **Part 2 – Electricity Transfers**  
-        Analysis of electricity imports and exports between Norwegian
-        and neighboring European bidding zones using ENTSO-E data.
-        The workflow incorporates Apache Spark, Cassandra, and MongoDB.
+    **Data Overview**
 
-        **Part 3 – Weather and Time Series Analysis**  
-        Historical ERA5 temperature and precipitation data from
-        Open-Meteo are combined with reservoir data to investigate
-        anomalies, seasonal patterns, and frequency characteristics.
+    - **Reservoir Data:** Historical reservoir filling levels and weekly changes.
+    - **Electricity Transfers:** Electricity flows between bidding zones.
+    - **Weather Data:** Historical temperature and precipitation, data coverage
+      and downloading of missing observations.
 
-        Statistical methods include:
-        - Discrete Cosine Transform (DCT) and Statistical Process Control (SPC)
-        - Local Outlier Factor (LOF)
-        - Seasonal-Trend decomposition using LOESS (STL)
-        - Short-Time Fourier Transform (STFT)
+    **Data Analysis**
 
-        Use the navigation menu to explore the datasets and analyses.
-        """)
+    - **Anomaly Detection:** Detection of unusual weather observations
+      using SATV/SPC and Local Outlier Factor.
+    - **Time Series Analysis:** STL decomposition and spectrograms of
+      reservoir filling levels.
+    - **Sliding Window Correlation:** Investigation of seasonal and lagged
+      relationships between weather and reservoir filling changes.
+
+    **Prediction**
+
+    - **Reservoir Forecasting:** Configurable multi-week forecasting using
+      River, lagged reservoir observations and optional weather variables.
+    """)
+
+    st.subheader("Using the application")
+
+    st.markdown("""
+    Use the sidebar to navigate between pages and select geographical
+    areas and time periods. These selections are shared across relevant
+    pages.
+
+    Areas can also be selected directly through the interactive map.
+    Individual analysis pages provide additional controls for exploring
+    different parameters and model configurations.
+    """)
+
+    st.subheader("Data sources")
+
+    st.markdown("""
+    - [NVE Magasinstatistikk](https://www.nve.no/)
+    - [ENTSO-E Transparency Platform](https://transparency.entsoe.eu/)
+    - [Open-Meteo](https://open-meteo.com/)
+    """)
+
+    st.caption(
+        "Developed as part of IND320 – Data to Decision, NMBU, Autumn 2026."
+    )
 
 # Temporary placeholders for new pages
 def sliding_correlation():
