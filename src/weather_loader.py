@@ -4,6 +4,7 @@ import pandas as pd
 import openmeteo_requests
 import requests_cache
 from retry_requests import retry
+import streamlit as st
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 WEATHER_DIR = PROJECT_ROOT / "data" / "weather"
@@ -14,7 +15,7 @@ cache_session = requests_cache.CachedSession(
     str(PROJECT_ROOT / ".cache"),
     expire_after=3600
 )
-retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
+retry_session = retry(cache_session, retries=2, backoff_factor=0.5)
 openmeteo = openmeteo_requests.Client(session=retry_session)
 
 with open(PROJECT_ROOT / "data" / "weather" / "zone_coordinates.json", "r") as f:
@@ -89,7 +90,11 @@ def download_weather(region, start_date, end_date,
             "timezone": "GMT"
         }
 
-        responses = openmeteo.weather_api(url, params=params)
+        responses = openmeteo.weather_api(
+            url,
+            params=params,
+            timeout=120
+        )
 
         batch_data = []
 

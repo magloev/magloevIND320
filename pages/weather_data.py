@@ -1,8 +1,9 @@
 import streamlit as st
 import pandas as pd
+from src.weather_cache import check_weather_availability
 
 from src.weather_loader import (
-    load_cached_weather,
+    check_weather_availability,
     aggregate_weather,
     zone_coordinates
 )
@@ -52,12 +53,12 @@ end_date = pd.Timestamp(end_date).strftime("%Y-%m-%d")
 st.write(f"**Selected region:** {region}")
 st.write(f"**Selected period:** {start_date} to {end_date}")
 
-df_cached, missing_dates = load_cached_weather(
+df_cached, missing_dates = check_weather_availability(
     region,
     start_date,
     end_date,
-    resolution=resolution,
-    n_locations=n_locations
+    resolution,
+    n_locations
 )
 
 available = len(df_cached)
@@ -100,6 +101,7 @@ elif allow_download:
                 st.error(f"Download failed: {e}")
 
             else:
+                check_weather_availability.clear()
                 st.rerun()
 
 else:
