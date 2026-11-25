@@ -56,7 +56,24 @@ else:
     start_date, end_date = st.session_state["date_range"]
 
     start_date = pd.Timestamp(start_date).strftime("%Y-%m-%d")
-    end_date = pd.Timestamp(end_date).strftime("%Y-%m-%d")
+    # Account for the ERA5 publication delay
+    latest_weather_date = (
+        pd.Timestamp.now(tz="UTC").normalize().tz_localize(None)
+        - pd.Timedelta(days=7)
+    )
+
+    selected_end = pd.Timestamp(end_date)
+
+    end_date = min(
+        selected_end,
+        latest_weather_date
+    ).strftime("%Y-%m-%d")
+
+    if pd.Timestamp(end_date) < selected_end:
+        st.caption(
+            f"Weather data displayed until {end_date} "
+            "due to the ERA5 publication delay."
+        )
 
     variable = (
         "temperature_2m_mean"
