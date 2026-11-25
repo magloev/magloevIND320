@@ -2,15 +2,25 @@ import streamlit as st
 import plotly.graph_objects as go
 import json
 import pandas as pd
-from src.weather_loader import load_cached_weather
+
 from src.weather_cache import check_weather_availability
+
 
 st.header("Interactive Map")
 
 area_type = st.session_state["area_type"]
-# Load GeoJSON
-with open(f"data/geojson/{area_type.lower()}.geojson") as f:
-    geojson = json.load(f)
+
+# Load and cache GeoJSON
+@st.cache_data
+def load_geojson(area_type):
+    with open(
+        f"data/geojson/{area_type.lower()}.geojson",
+        encoding="utf-8"
+    ) as f:
+        return json.load(f)
+
+
+geojson = load_geojson(area_type)
 
 # Extract area identifiers
 area_ids = [
@@ -23,9 +33,12 @@ colour_by = st.radio(
     ["Geographical areas", "Temperature", "Precipitation"],
     horizontal=True
 )
+
 missing_areas = []
 weather_values = {}
+weather_status = []
 
+# Geographical colouring
 if colour_by == "Geographical areas" or area_type != "EL":
 
     z_values = area_ids
@@ -33,8 +46,11 @@ if colour_by == "Geographical areas" or area_type != "EL":
     show_scale = False
 
     if colour_by != "Geographical areas":
-        st.info("Weather colouring is currently only available for EL areas.")
+        st.info(
+            "Weather colouring is currently only available for EL areas."
+        )
 
+# Weather colouring
 else:
 
     start_date, end_date = st.session_state["date_range"]
@@ -42,11 +58,17 @@ else:
     start_date = pd.Timestamp(start_date).strftime("%Y-%m-%d")
     end_date = pd.Timestamp(end_date).strftime("%Y-%m-%d")
 
+    variable = (
+        "temperature_2m_mean"
+        if colour_by == "Temperature"
+        else "precipitation_sum"
+    )
+
     for area in area_ids:
 
-        region = f"NO {area}"
+        region = f"NO {int(area)}"
 
-        df_weather, missing_dates = load_cached_weather(
+        df_weather, missing_dates = check_weather_availability(
             region,
             start_date,
             end_date,
@@ -54,12 +76,25 @@ else:
             n_locations=100
         )
 
-        if colour_by == "Temperature":
-            values = df_weather["temperature_2m_mean"]
-        else:
-            values = df_weather["precipitation_sum"]
+        values = pd.to_numeric(
+            df_weather[variable],
+            errors="coerce"
+        )
 
-        if len(missing_dates) > 0 or values.isna().any():
+        missing_values = int(values.isna().sum())
+
+        weather_status.append({
+            "Region": region,
+            "Available observations": len(df_weather),
+            "Missing dates": len(missing_dates),
+            "Missing values": missing_values
+        })
+
+        if (
+            df_weather.empty
+            or len(missing_dates) > 0
+            or missing_values > 0
+        ):
             missing_areas.append(area)
             continue
 
@@ -68,21 +103,46 @@ else:
         else:
             weather_values[area] = values.sum()
 
-    z_values = [weather_values.get(area) for area in area_ids]
+    z_values = [
+        weather_values.get(area)
+        for area in area_ids
+    ]
 
-    colourscale = "RdYlBu_r" if colour_by == "Temperature" else "Blues"
+    colourscale = (
+        "RdYlBu_r"
+        if colour_by == "Temperature"
+        else "Blues"
+    )
+
     show_scale = bool(weather_values)
 
+
+# Display information about incomplete weather data
 if missing_areas:
+
     missing_regions = ", ".join(
         f"NO{area}" for area in missing_areas
     )
 
     st.info(
         f"Incomplete weather data for: {missing_regions}. "
-        "Visit the Weather Data page to download missing data."
+        "Check weather data coverage for the selected period."
     )
 
+    with st.expander("Weather data availability"):
+        st.dataframe(
+            pd.DataFrame(weather_status),
+            hide_index=True,
+            use_container_width=True
+        )
+
+        st.caption(
+            f"Period: {start_date} to {end_date} | "
+            "Daily resolution | 100 sampling locations"
+        )
+
+
+# Highlight selected geographical area
 selected_area = st.session_state["area_id"]
 
 line_widths = [
@@ -95,6 +155,8 @@ line_colors = [
     for area in area_ids
 ]
 
+
+# Define colour bar units
 if colour_by == "Temperature":
     colorbar_title = "Temperature (°C)"
 elif colour_by == "Precipitation":
@@ -102,16 +164,18 @@ elif colour_by == "Precipitation":
 else:
     colorbar_title = ""
 
+
 # Create map
 fig = go.Figure()
 
-# Areas with available data
 available_indices = [
     i for i, area in enumerate(area_ids)
     if area not in missing_areas
 ]
 
+# Areas with available data
 if available_indices:
+
     fig.add_trace(go.Choroplethmap(
         geojson=geojson,
         locations=[area_ids[i] for i in available_indices],
@@ -120,13 +184,19 @@ if available_indices:
         colorscale=colourscale,
         showscale=show_scale,
         marker_opacity=0.3,
-        marker_line_width=[line_widths[i] for i in available_indices],
-        marker_line_color=[line_colors[i] for i in available_indices],
+        marker_line_width=[
+            line_widths[i] for i in available_indices
+        ],
+        marker_line_color=[
+            line_colors[i] for i in available_indices
+        ],
         colorbar=dict(title=colorbar_title)
     ))
 
-# Areas with missing data
+
+# Display areas with incomplete weather data in grey
 if missing_areas:
+
     fig.add_trace(go.Choroplethmap(
         geojson=geojson,
         locations=missing_areas,
@@ -143,9 +213,14 @@ if missing_areas:
             "red" if area == selected_area else "black"
             for area in missing_areas
         ],
-        hovertemplate="Area %{location}<br>No weather data<extra></extra>"
+        hovertemplate=(
+            "Area %{location}<br>"
+            "Incomplete weather data<extra></extra>"
+        )
     ))
 
+
+# Map layout
 fig.update_layout(
     map_style="carto-positron",
     map_center={"lat": 64.5, "lon": 15},
@@ -154,13 +229,17 @@ fig.update_layout(
     margin=dict(l=0, r=0, t=0, b=0)
 )
 
+
+# Store selected area in global session state
 def select_area():
+
     points = st.session_state["interactive_map"].selection.points
 
     if points:
         st.session_state["area_id"] = points[-1]["location"]
 
-event = st.plotly_chart(
+
+st.plotly_chart(
     fig,
     use_container_width=True,
     on_select=select_area,
