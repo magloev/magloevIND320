@@ -3,7 +3,7 @@ import pandas as pd
 import requests
 
 
-@st.cache_data
+@st.cache_data(ttl=3600)
 def load_reservoir_data():
     url = "https://biapi.nve.no/magasinstatistikk/api/Magasinstatistikk/HentOffentligData"
     response = requests.get(url, timeout=60)

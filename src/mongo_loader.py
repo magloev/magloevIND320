@@ -2,11 +2,11 @@ import streamlit as st
 import pandas as pd
 from pymongo import MongoClient
 
-@st.cache_resource
+@st.cache_resource()
 def get_mongo_client():
     return MongoClient(st.secrets["mongo_uri"])
 
-@st.cache_data(ttl=600)
+@st.cache_data(ttl=600, show_spinner="Loading data from MongoDB...")
 def load_mongo_data():
     client = get_mongo_client()
 
