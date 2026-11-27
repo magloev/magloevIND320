@@ -211,7 +211,8 @@ def load_cached_weather(region, start_date, end_date,
     if weather_data:
         df_average = (
             pd.concat(weather_data, ignore_index=True)
-            .drop_duplicates(subset="date")
+            .groupby("date", as_index=False)
+            .last()
             .sort_values("date")
             .reset_index(drop=True)
         )
@@ -221,6 +222,20 @@ def load_cached_weather(region, start_date, end_date,
     missing_dates = expected_dates.difference(df_average["date"])
 
     return df_average, missing_dates
+
+def get_incomplete_dates(df_average, missing_dates, variables):
+
+    missing_values = df_average.loc[
+        df_average[variables].isna().any(axis=1),
+        "date"
+    ]
+
+    if not missing_values.empty:
+        missing_dates = missing_dates.union(
+            pd.DatetimeIndex(missing_values)
+        )
+
+    return missing_dates
 
 def aggregate_weather(region, start_date, end_date,
                       allow_download=False,
@@ -233,6 +248,9 @@ def aggregate_weather(region, start_date, end_date,
     df_average, missing_dates = load_cached_weather(
         region, start_date, end_date,
         resolution, n_locations
+    )
+    missing_dates = get_incomplete_dates(
+        df_average, missing_dates, variables
     )
 
     if len(missing_dates) == 0:
@@ -284,6 +302,9 @@ def aggregate_weather(region, start_date, end_date,
     df_average, missing_dates = load_cached_weather(
         region, start_date, end_date,
         resolution, n_locations
+    )
+    missing_dates = get_incomplete_dates(
+        df_average, missing_dates, variables
     )
 
     if len(missing_dates) > 0:
